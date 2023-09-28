@@ -11,6 +11,7 @@ export const registerController = asyncHandler(async (req, res) => {
       success: false,
       message: "Please Enter all the required field",
     });
+    return;
   }
 
   const userExists = await User.findOne({ email });
@@ -60,6 +61,7 @@ export const loginController = async (req, res) => {
         success: false,
         message: "User not found, Please register",
       });
+      return;
     }
 
     const passwordValidation = await comparePassword(password, user.password);
@@ -91,4 +93,24 @@ export const loginController = async (req, res) => {
     });
     console.log(error.message);
   }
+};
+
+// Finding users by using query parameters
+export const usersController = async (req, res) => {
+  const keyword = req.query.search
+    ? {
+        $or: [
+          {
+            name: { $regex: req.query.search, $options: "i" },
+            email: { $regex: req.query.search, $options: "i" },
+          },
+        ],
+      }
+    : {};
+
+  const users = await User.find(keyword).find({
+    _id: { $ne: req.user._id },
+  });
+
+  res.send(users);
 };

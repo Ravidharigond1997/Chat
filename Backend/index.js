@@ -5,6 +5,7 @@ import connectDB from "./config/db.js";
 import colors from "colors";
 
 import userRouter from "./routes/userRoutes.js";
+import chatRouter from "./routes/chatRoutes.js";
 import { notFound, errorHandler } from "./middleware/errorMiddleware.js";
 
 const app = express();
@@ -23,6 +24,7 @@ app.post("/data", async (req, res) => {
 });
 
 app.use("/api/user", userRouter);
+app.use("/api/chat", chatRouter);
 app.use(notFound);
 app.use(errorHandler);
 
