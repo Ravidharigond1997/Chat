@@ -1,13 +1,13 @@
 import mongoose from "mongoose";
 
-const chatModel = mongoose.scheema(
+const chatModel = new mongoose.Schema(
   {
     chatName: {
       type: String,
       trim: true,
     },
     isGroupChat: {
-      type: boolean,
+      type: Boolean,
       defalut: false,
     },
     users: [
@@ -31,4 +31,4 @@ const chatModel = mongoose.scheema(
 );
 
 const Chat = mongoose.model("Chat", chatModel);
-module.exports = Chat;
+export default Chat;
