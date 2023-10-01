@@ -75,15 +75,11 @@ export const loginController = async (req, res) => {
     const token = generateToken(user._id);
 
     res.status(201).send({
-      success: true,
-      message: "User login successfully",
-      user: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        isAdmin: user.isAdmin,
-        pic: user.pic,
-      },
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      isAdmin: user.isAdmin,
+      pic: user.pic,
       token,
     });
   } catch (error) {
