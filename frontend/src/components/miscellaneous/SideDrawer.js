@@ -18,6 +18,7 @@ import {
   Input,
   Toast,
   useToast,
+  Spinner,
 } from "@chakra-ui/react";
 import React, { useState } from "react";
 import { BellIcon, ChevronDownIcon } from "@chakra-ui/icons";
@@ -29,7 +30,7 @@ import ChatLoading from "../ChatLoading";
 import UserListItem from "../UserAvatar/UserListItem";
 
 export function SideDrawer() {
-  const [user] = ChatState();
+  const [user, setSelectedChat, chats, setChats] = ChatState();
   const navigate = useNavigate();
   const toast = useToast();
 
@@ -38,6 +39,7 @@ export function SideDrawer() {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
   const [searchResult, setSearchResult] = useState([]);
+  const [loadingChat, setLoadingChat] = useState(false);
 
   const logoutHandler = () => {
     localStorage.removeItem("userInfo");
@@ -64,7 +66,7 @@ export function SideDrawer() {
         },
       };
       const { data } = await axios.get(
-        `/api/user/allUsers?search={search}`,
+        `/api/user/allUsers?search=${search}`,
         config
       );
 
@@ -83,7 +85,37 @@ export function SideDrawer() {
     }
   };
 
-  const accessChat = (userId) => {};
+  const accessChat = async (userId) => {
+    try {
+      setLoadingChat(true);
+      const config = {
+        headers: {
+          "Content-type": "application/json",
+          Authorization: `Bearer ${user.token}`,
+        },
+      };
+
+      const { data } = await axios.post(
+        "/api/chat/createChat",
+        { userId },
+        config
+      );
+
+      if (!chats.find((c) => c._id === data._id)) setChats([data, ...chats]);
+      setSelectedChat(data);
+      setLoadingChat(false);
+      onClose();
+    } catch (error) {
+      toast({
+        title: "Error fetching the chat",
+        description: error.message,
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+        position: "bottom-left",
+      });
+    }
+  };
   return (
     <>
       <Box
@@ -156,6 +188,7 @@ export function SideDrawer() {
                 />
               ))
             )}
+            {loadingChat && <Spinner ml="auto" display="flex" />}
           </DrawerBody>
         </DrawerContent>
       </Drawer>
