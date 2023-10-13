@@ -5,10 +5,11 @@ import axios from "axios";
 import { AddIcon } from "@chakra-ui/icons";
 import ChatLoading from "./ChatLoading.js";
 import { getSender } from "../config/ChatLogic.js";
+import GroupChatModel from "./miscellaneous/GroupChatModel.js";
 
 function MyChats() {
   const [loggedUser, setLoggedUser] = useState();
-  const [user, setSelectedChat, selectedChat, chats, setChats] = ChatState();
+  const { user, setSelectedChat, selectedChat, chats, setChats } = ChatState();
 
   const toast = useToast();
 
@@ -21,7 +22,6 @@ function MyChats() {
       };
 
       const { data } = await axios.get("/api/chat/getChat", config);
-      console.log(data, "chats");
       setChats(data);
     } catch (error) {
       toast({
@@ -61,13 +61,15 @@ function MyChats() {
         alignItems="center"
       >
         My Chats
-        <Button
-          display="flex"
-          fontSize={{ base: "17px", md: "10px", lg: "17px" }}
-          rightIcon={<AddIcon />}
-        >
-          New Group Chat
-        </Button>
+        <GroupChatModel>
+          <Button
+            display="flex"
+            fontSize={{ base: "17px", md: "10px", lg: "17px" }}
+            rightIcon={<AddIcon />}
+          >
+            New Group Chat
+          </Button>
+        </GroupChatModel>
       </Box>
       <Box
         display="flex"

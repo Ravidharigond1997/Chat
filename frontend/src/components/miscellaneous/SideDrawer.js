@@ -30,7 +30,7 @@ import ChatLoading from "../ChatLoading";
 import UserListItem from "../UserAvatar/UserListItem";
 
 export function SideDrawer() {
-  const [user, setSelectedChat, chats, setChats] = ChatState();
+  const { user, setSelectedChat, chats, setChats } = ChatState();
   const navigate = useNavigate();
   const toast = useToast();
 
@@ -73,7 +73,6 @@ export function SideDrawer() {
       setLoading(false);
       setSearchResult(data);
     } catch (error) {
-      console.log(error);
       toast({
         title: "Error occured!",
         description: "Failed to search",
