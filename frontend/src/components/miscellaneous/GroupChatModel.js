@@ -1,4 +1,5 @@
 import {
+  Box,
   Button,
   FormControl,
   Input,
@@ -15,6 +16,8 @@ import {
 import React, { useState } from "react";
 import { ChatState } from "../../Contaxt/ChatProvider";
 import axios from "axios";
+import UserListItem from "../UserAvatar/UserListItem";
+import UserBadgeItem from "../UserAvatar/UserBadgeItem";
 
 function GroupChatModel({ children }) {
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -29,7 +32,6 @@ function GroupChatModel({ children }) {
   const { user, chats, setChats } = ChatState();
 
   const handleSearch = async (query) => {
-    console.log(query, "For Searching");
     setSearch(query);
     if (!query) {
       return;
@@ -60,7 +62,66 @@ function GroupChatModel({ children }) {
       });
     }
   };
-  const handleSubmit = async () => {};
+  const handleGroup = (userToAdd) => {
+    if (selectedUsers.includes(userToAdd)) {
+      toast({
+        title: "User already added",
+        status: "warning",
+        duration: 5000,
+        isClosable: true,
+        postion: "top",
+      });
+      return;
+    }
+
+    setSelectedUsers([...selectedUsers, userToAdd]);
+  };
+
+  const hendleDelete = (delUser) => {
+    setSelectedUsers(selectedUsers.filter((sel) => sel._id !== delUser._id));
+  };
+
+  const handleSubmit = async () => {
+    if (!groupChatName || !selectedUsers) {
+      toast({
+        title: "Please fill all fields",
+        status: "warning",
+        duration: 5000,
+        isClosable: true,
+        position: "top",
+      });
+      return;
+    }
+
+    try {
+      const config = {
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      };
+
+      const { data } = await axios.post(
+        "/api/chat/creteGroupChat",
+        {
+          name: groupChatName,
+          users: JSON.stringify(selectedUsers.map((user) => user._id)),
+        },
+        config
+      );
+
+      setChats([data, ...chats]);
+      onClose();
+    } catch (error) {
+      toast({
+        title: "Failed to creat the group chat!",
+        description: error.message.data,
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+        postion: "bottom",
+      });
+    }
+  };
   return (
     <>
       <span onClick={onOpen}>{children}</span>
@@ -71,13 +132,13 @@ function GroupChatModel({ children }) {
           <ModalHeader
             fontSize="35px"
             fontFamily="work sans"
-            display="flex"
+            d="flex"
             justifyContent="center"
           >
             Create Group Chat
           </ModalHeader>
           <ModalCloseButton />
-          <ModalBody display="flex" flexDir="column" alignItems="center">
+          <ModalBody d="flex" flexDir="column" alignItems="center">
             <FormControl>
               <Input
                 placeholder="Chat Name"
@@ -92,8 +153,28 @@ function GroupChatModel({ children }) {
                 onChange={(e) => handleSearch(e.target.value)}
               />
             </FormControl>
-            {/* selected users */}
-            {/* render searching users */}
+            <Box w="100%" display="flex" flexWrap="wrap">
+              {selectedUsers.map((u) => (
+                <UserBadgeItem
+                  key={user._id}
+                  user={u}
+                  handleFunction={() => hendleDelete(u)}
+                />
+              ))}
+            </Box>
+            {loading ? (
+              <div>loading</div>
+            ) : (
+              searchResult
+                ?.slice(0, 4)
+                .map((user) => (
+                  <UserListItem
+                    key={user._id}
+                    user={user}
+                    handleFunction={() => handleGroup(user)}
+                  />
+                ))
+            )}
           </ModalBody>
           <ModalFooter>
             <Button colorScheme="blue" onClick={handleSubmit}>

@@ -36,7 +36,7 @@ function ProfileModel({ user, children }) {
           <ModalHeader
             fontSize="40px"
             fontFamily="Work sans"
-            display="flex"
+            d="flex"
             justifyContent="center"
           >
             {user.name}

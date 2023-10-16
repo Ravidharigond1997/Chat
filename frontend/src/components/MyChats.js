@@ -7,7 +7,7 @@ import ChatLoading from "./ChatLoading.js";
 import { getSender } from "../config/ChatLogic.js";
 import GroupChatModel from "./miscellaneous/GroupChatModel.js";
 
-function MyChats() {
+function MyChats({ fetchAgain }) {
   const [loggedUser, setLoggedUser] = useState();
   const { user, setSelectedChat, selectedChat, chats, setChats } = ChatState();
 
@@ -38,7 +38,7 @@ function MyChats() {
   useEffect(() => {
     setLoggedUser(JSON.parse(localStorage.getItem("userInfo")));
     fetchChats();
-  }, []);
+  }, [fetchAgain]);
   return (
     <Box
       display={{ base: selectedChat ? "none" : "flex", md: "flex" }}
@@ -47,7 +47,7 @@ function MyChats() {
       p={3}
       bg="white"
       w={{ base: "100%", md: "31%" }}
-      barderRedius="lg"
+      borderRadius="lg"
       borderWidth="1px"
     >
       <Box
@@ -85,9 +85,9 @@ function MyChats() {
           <Stack overflowY="scroll">
             {chats.map((chat) => (
               <Box
-                onClick={() => selectedChat(chat)}
+                onClick={() => setSelectedChat(chat)}
                 cursor="pointer"
-                bg={selectedChat === chat ? "#38B2Ac" : "#E8E8E8"}
+                bg={selectedChat === chat ? "#38B2AC" : "#E8E8E8"}
                 color={selectedChat === chat ? "white" : "black"}
                 px={3}
                 py={2}
