@@ -38,7 +38,8 @@ function MyChats({ fetchAgain }) {
   useEffect(() => {
     setLoggedUser(JSON.parse(localStorage.getItem("userInfo")));
     fetchChats();
-  }, [fetchAgain]);
+    // eslint-disable-next-line
+  }, []);
   return (
     <Box
       display={{ base: selectedChat ? "none" : "flex", md: "flex" }}

@@ -22,7 +22,7 @@ import UserBadgeItem from "../UserAvatar/UserBadgeItem";
 import axios from "axios";
 import UserListItem from "../UserAvatar/UserListItem";
 
-function UpdateGroupChatModel({ fetchAgain, setFetchAgain }) {
+function UpdateGroupChatModel({ fetchAgain, setFetchAgain, fetchMessage }) {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [groupChatName, setGroupChatName] = useState();
   const [search, setSearch] = useState("");
@@ -76,6 +76,7 @@ function UpdateGroupChatModel({ fetchAgain, setFetchAgain }) {
 
       setSelectedChat(data);
       setFetchAgain(!fetchAgain);
+      fetchMessage();
       setLoading(false);
     } catch (error) {
       toast({
@@ -89,7 +90,51 @@ function UpdateGroupChatModel({ fetchAgain, setFetchAgain }) {
     }
   };
 
-  const handleRemove = () => {};
+  const handleRemove = async (user1) => {
+    if (selectedChat.groupAdmin._id !== user._id && user1._id !== user._id) {
+      toast({
+        title: "Only admins can remove someone!",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+        position: "bottom",
+      });
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const config = {
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      };
+
+      const { data } = await axios.put(
+        "/api/chat/removeMemeberFromGroup",
+        {
+          chatId: selectedChat._id,
+          userId: user1._id,
+        },
+        config
+      );
+
+      user1._id === user._id ? setSelectedChat() : setSelectedChat(data);
+      setFetchAgain(!fetchAgain);
+      setLoading(false);
+    } catch (error) {
+      toast({
+        title: "Error Occured",
+        description: error,
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+        position: "bottom",
+      });
+      setLoading(false);
+    }
+  };
 
   const handleRename = async () => {
     if (!groupChatName) return;
@@ -182,7 +227,7 @@ function UpdateGroupChatModel({ fetchAgain, setFetchAgain }) {
             <Box w="100%" display="flex" flexWrap="wrap" pb={3}>
               {selectedChat.users.map((u) => (
                 <UserBadgeItem
-                  key={user._id}
+                  key={u._id}
                   user={u}
                   handleFunction={() => handleRemove(u)}
                 />
@@ -215,7 +260,7 @@ function UpdateGroupChatModel({ fetchAgain, setFetchAgain }) {
             {loading ? (
               <Spinner size="lg" />
             ) : (
-              searchResult.map((user) => (
+              searchResult?.map((user) => (
                 <UserListItem
                   key={user._id}
                   user={user}

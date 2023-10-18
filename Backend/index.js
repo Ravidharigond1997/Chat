@@ -6,6 +6,7 @@ import colors from "colors";
 
 import userRouter from "./routes/userRoutes.js";
 import chatRouter from "./routes/chatRoutes.js";
+import messageRouter from "./routes/messageRoutes.js";
 import { notFound, errorHandler } from "./middleware/errorMiddleware.js";
 
 const app = express();
@@ -14,7 +15,6 @@ dotenv.config();
 
 connectDB();
 
-app.use(express.json());
 app.use(express.json()); // to accept json data
 app.use(cors({ origin: true }));
 
@@ -25,6 +25,7 @@ app.post("/data", async (req, res) => {
 
 app.use("/api/user", userRouter);
 app.use("/api/chat", chatRouter);
+app.use("/api/message", messageRouter);
 app.use(notFound);
 app.use(errorHandler);
 
