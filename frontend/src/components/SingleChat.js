@@ -10,18 +10,35 @@ import {
   useToast,
 } from "@chakra-ui/react";
 import axios from "axios";
+import io from "socket.io-client";
 import { ArrowBackIcon } from "@chakra-ui/icons";
+import { useLottie } from "lottie-react";
 import { getSender, getSenderFull } from "../config/ChatLogic";
 import ProfileModel from "./miscellaneous/ProfileModel";
 import UpdateGroupChatModel from "./miscellaneous/UpdateGroupChatModel";
 import "./styles.css";
+import ScrollableChat from "./ScrollableChat";
+import animationData from "../animation/typing.json";
 
-function SingleChat({ fetchChat, setFetchChatAgain }) {
+const ENDPOINT = "http://localhost:5000";
+var socket, selectedChatCompare;
+
+function SingleChat({ fetchChatAgain, setFetchChatAgain }) {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [newMessage, setNewMessage] = useState("");
+  const [socketConnected, setSockedConnected] = useState(false);
+  const [typing, setTyping] = useState(false);
+  const [istyping, setIsTyping] = useState(false);
 
   const toast = useToast();
+
+  const options = {
+    loop: true,
+    animationData: animationData,
+  };
+
+  const { View } = useLottie(options);
 
   const { user, selectedChat, setSelectedChat } = ChatState();
 
@@ -34,13 +51,15 @@ function SingleChat({ fetchChat, setFetchChatAgain }) {
           Authorization: `Bearer ${user.token}`,
         },
       };
-
+      setLoading(true);
       const { data } = await axios.get(
         `/api/message/${selectedChat._id}`,
         config
       );
       setMessages(data);
       setLoading(false);
+
+      socket.emit("Join Chat", selectedChat._id);
     } catch (error) {
       toast({
         title: "Error Occured",
@@ -54,11 +73,34 @@ function SingleChat({ fetchChat, setFetchChatAgain }) {
   };
 
   useEffect(() => {
+    socket = io(ENDPOINT);
+    socket.emit("setup", user);
+    socket.on("connected", () => setSockedConnected(true));
+    socket.on("typing", () => setIsTyping(true));
+    socket.on("stop typing", () => setIsTyping(false));
+  }, []);
+
+  useEffect(() => {
     fetchMessage();
+    selectedChatCompare = selectedChat;
   }, [selectedChat]);
+
+  useEffect(() => {
+    socket.on("message received", (newMessageReceived) => {
+      if (
+        !selectedChatCompare ||
+        selectedChatCompare._id !== newMessageReceived.chat._id
+      ) {
+        //give notification
+      } else {
+        setMessages([...messages, newMessageReceived]);
+      }
+    });
+  });
 
   const sendMessage = async (event) => {
     if (event.key === "Enter" && newMessage) {
+      socket.emit("stop typing", selectedChat._id);
       try {
         const config = {
           headers: {
@@ -76,6 +118,8 @@ function SingleChat({ fetchChat, setFetchChatAgain }) {
           },
           config
         );
+
+        socket.emit("new message", data);
         setMessages([...messages, data]);
       } catch (error) {
         toast({
@@ -92,6 +136,27 @@ function SingleChat({ fetchChat, setFetchChatAgain }) {
 
   const typingHandler = (e) => {
     setNewMessage(e.target.value);
+
+    //Typing Indicator Logic
+    if (!socketConnected) return;
+
+    if (!typing) {
+      setTyping(true);
+      socket.emit("typing", selectedChat._id);
+    }
+
+    let lastTypingTime = new Date().getTime();
+    var timerLength = 3000;
+
+    setTimeout(() => {
+      var timeNow = new Date().getTime();
+      var timeDiff = timeNow - lastTypingTime;
+
+      if (timeDiff >= timerLength && typing) {
+        socket.emit("stop typing", selectedChat._id);
+        setTyping(false);
+      }
+    }, timerLength);
   };
   return (
     <>
@@ -121,7 +186,7 @@ function SingleChat({ fetchChat, setFetchChatAgain }) {
               <>
                 {selectedChat.chatName.toUpperCase()}
                 <UpdateGroupChatModel
-                  fetchAgain={fetchChat}
+                  fetchAgain={fetchChatAgain}
                   setFetchAgain={setFetchChatAgain}
                   fetchMessage={fetchMessage}
                 />
@@ -153,7 +218,13 @@ function SingleChat({ fetchChat, setFetchChatAgain }) {
               </div>
             )}
 
-            <FormControl onKeyDown={sendMessage} isRequired mt={3}>
+            <FormControl
+              onKeyDown={sendMessage}
+              isRequired
+              mt={3}
+              id="first-name"
+            >
+              {istyping ? <div>{View}</div> : <></>}
               <Input
                 variant="filled"
                 bg="#E0E0E0"

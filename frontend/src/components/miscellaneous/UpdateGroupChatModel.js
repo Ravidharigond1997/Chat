@@ -22,7 +22,9 @@ import UserBadgeItem from "../UserAvatar/UserBadgeItem";
 import axios from "axios";
 import UserListItem from "../UserAvatar/UserListItem";
 
-function UpdateGroupChatModel({ fetchAgain, setFetchAgain, fetchMessage }) {
+function UpdateGroupChatModel(props) {
+  const { fetchAgain, setFetchAgain, fetchMessage } = props;
+
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [groupChatName, setGroupChatName] = useState();
   const [search, setSearch] = useState("");
