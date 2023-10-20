@@ -18,12 +18,12 @@ import ProfileModel from "./miscellaneous/ProfileModel";
 import UpdateGroupChatModel from "./miscellaneous/UpdateGroupChatModel";
 import "./styles.css";
 import ScrollableChat from "./ScrollableChat";
-import animationData from "../animation/typing.json";
 
 const ENDPOINT = "http://localhost:5000";
 var socket, selectedChatCompare;
 
-function SingleChat({ fetchChatAgain, setFetchChatAgain }) {
+function SingleChat(props) {
+  const { fetchAgain, setFetchAgain } = props;
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [newMessage, setNewMessage] = useState("");
@@ -33,14 +33,8 @@ function SingleChat({ fetchChatAgain, setFetchChatAgain }) {
 
   const toast = useToast();
 
-  const options = {
-    loop: true,
-    animationData: animationData,
-  };
-
-  const { View } = useLottie(options);
-
-  const { user, selectedChat, setSelectedChat } = ChatState();
+  const { user, selectedChat, setSelectedChat, notification, setNotification } =
+    ChatState();
 
   const fetchMessage = async () => {
     if (!selectedChat) return;
@@ -85,13 +79,18 @@ function SingleChat({ fetchChatAgain, setFetchChatAgain }) {
     selectedChatCompare = selectedChat;
   }, [selectedChat]);
 
+  console.log(notification, "------------------");
+
   useEffect(() => {
     socket.on("message received", (newMessageReceived) => {
       if (
         !selectedChatCompare ||
         selectedChatCompare._id !== newMessageReceived.chat._id
       ) {
-        //give notification
+        if (!notification.includes(newMessageReceived)) {
+          setNotification([newMessageReceived, ...notification]);
+          setFetchAgain(!fetchAgain);
+        }
       } else {
         setMessages([...messages, newMessageReceived]);
       }
@@ -186,8 +185,8 @@ function SingleChat({ fetchChatAgain, setFetchChatAgain }) {
               <>
                 {selectedChat.chatName.toUpperCase()}
                 <UpdateGroupChatModel
-                  fetchAgain={fetchChatAgain}
-                  setFetchAgain={setFetchChatAgain}
+                  fetchAgain={fetchAgain}
+                  setFetchAgain={setFetchAgain}
                   fetchMessage={fetchMessage}
                 />
               </>
@@ -224,7 +223,7 @@ function SingleChat({ fetchChatAgain, setFetchChatAgain }) {
               mt={3}
               id="first-name"
             >
-              {istyping ? <div>{View}</div> : <></>}
+              {istyping ? <div>Typing...</div> : <></>}
               <Input
                 variant="filled"
                 bg="#E0E0E0"

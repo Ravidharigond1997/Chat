@@ -3,11 +3,11 @@ import { ChatState } from "../Contaxt/ChatProvider";
 import { SideDrawer } from "../components/miscellaneous/SideDrawer";
 import MyChats from "../components/MyChats";
 import ChatBox from "../components/ChatBox";
-import { useState } from "react";
+import React, { useState } from "react";
 
 function ChatPage() {
   const { user } = ChatState();
-  const { fetchAgain, setFetchAgain } = useState(false);
+  const [fetchAgain, setFetchAgain] = useState(false);
 
   return (
     <div style={{ width: "100%" }}>
